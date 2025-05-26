@@ -1,0 +1,4 @@
+docker build -f Dockerfile-Service -t basketball.game.statistics:latest .
+docker run -d -p 1001:1001 --restart always --name basketball.game.statistics.dev -e DOTNET_ENVIRONMENT=Development basketball.game.statistics:latest
+
+

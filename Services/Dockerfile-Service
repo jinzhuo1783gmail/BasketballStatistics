@@ -1,0 +1,34 @@
+# Use the official .NET SDK image as the base image for building the application
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy project files
+COPY BasketballGameStatisticsServices/BasketballGameStatisticsServices.csproj ./BasketballGameStatisticsServices/
+RUN dotnet restore ./BasketballGameStatisticsServices/BasketballGameStatisticsServices.csproj
+
+# Copy all source files
+COPY . .
+
+# Build the application
+RUN dotnet build ./BasketballGameStatisticsServices/BasketballGameStatisticsServices.csproj -c Release -o /app/build
+
+# Use a smaller runtime image to run the application
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+
+# Set the working directory inside the runtime container
+WORKDIR /app
+
+# Only expose HTTP port (7092)
+ENV ASPNETCORE_URLS=http://+:1001  
+
+
+# Copy build output from the build stage
+COPY --from=build /app/build ./
+
+# Expose ports 1001 (HTTP) and 1001 (HTTPS) to the host
+EXPOSE 1001
+
+# Set the entry point to run the .NET application
+ENTRYPOINT ["dotnet", "BasketballGameStatisticsServices.dll"]

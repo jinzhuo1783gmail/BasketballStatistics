@@ -3,6 +3,7 @@ using Azure.Core;
 using BasketballGameStatistics.SqlServer.EFCore.Models;
 using BasketballGameStatistics.ViewModels;
 using BasketballGameStatisticsServices.Managers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BasketballGameStatisticsServices.Controllers
@@ -22,6 +23,7 @@ namespace BasketballGameStatisticsServices.Controllers
             _gameManager = gameManager;
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> AddGame([FromBody] Game request)
         {
