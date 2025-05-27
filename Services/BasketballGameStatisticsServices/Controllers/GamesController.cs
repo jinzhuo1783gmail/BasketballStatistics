@@ -58,7 +58,7 @@ namespace BasketballGameStatisticsServices.Controllers
             return Ok(result);
         }
 
-        [HttpGet("/{ClubId}")]
+        [HttpGet("{ClubId}")]
         public async Task<IActionResult> GetGames(int ClubId)
         {
             
