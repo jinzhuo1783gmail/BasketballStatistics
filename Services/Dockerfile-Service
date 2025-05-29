@@ -17,18 +17,25 @@ RUN dotnet build ./BasketballGameStatisticsServices/BasketballGameStatisticsServ
 # Use a smaller runtime image to run the application
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 
+# Install FFmpeg for audio conversion (WebM, OGG, etc. to WAV)
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
 # Set the working directory inside the runtime container
 WORKDIR /app
 
-# Only expose HTTP port (7092)
-ENV ASPNETCORE_URLS=http://+:1001  
-
+# Only expose HTTP port (1001)
+ENV ASPNETCORE_URLS=http://+:1001
 
 # Copy build output from the build stage
 COPY --from=build /app/build ./
 
-# Expose ports 1001 (HTTP) and 1001 (HTTPS) to the host
+# Expose port 1001 (HTTP) to the host
 EXPOSE 1001
+
+# Verify FFmpeg is installed and working
+RUN ffmpeg -version
 
 # Set the entry point to run the .NET application
 ENTRYPOINT ["dotnet", "BasketballGameStatisticsServices.dll"]

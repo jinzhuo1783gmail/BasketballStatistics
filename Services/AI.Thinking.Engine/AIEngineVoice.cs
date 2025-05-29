@@ -1,20 +1,12 @@
 ﻿using AI.Thinking.Engine.EngineModel;
 using Microsoft.CognitiveServices.Speech;
 using Microsoft.CognitiveServices.Speech.Audio;
-using NAudio.Wave;
-using NAudio.MediaFoundation;
 
 namespace AI.Thinking.Engine
 {
     public class AIEngineVoice : IAIEngineVoice
     {
         private readonly EngineVoiceModel _voiceModel;
-
-        static AIEngineVoice()
-        {
-            // Initialize MediaFoundation for audio processing
-            MediaFoundationApi.Startup();
-        }
 
         public AIEngineVoice(EngineVoiceModel voiceModel)
         {
@@ -23,19 +15,26 @@ namespace AI.Thinking.Engine
 
         public async Task<SpeechRecognitionResult?> SpeechToText(string base64, string language)
         {
-            var speechKey = _voiceModel.SpeechKey;
-
             var config = SpeechConfig.FromSubscription(_voiceModel.SpeechKey.Decrypt(), _voiceModel.ServiceRegion);
             config.SpeechRecognitionLanguage = language;
 
             byte[] audioBytes = Convert.FromBase64String(base64);
             
-            // Convert to PCM WAV format
+            // Convert to PCM WAV format using FFmpeg
             byte[] pcmAudioBytes = await ConvertToPcmWav(audioBytes);
+            if (pcmAudioBytes == null) return null;
 
-            using var memoryStream = new MemoryStream(pcmAudioBytes);
-            using var audioFormat = AudioStreamFormat.GetWaveFormatPCM(16000, 16, 1);
+            // Process as WAV PCM
+            var audioFormat = AudioStreamFormat.GetWaveFormatPCM(16000, 16, 1);
             using var pushStream = AudioInputStream.CreatePushStream(audioFormat);
+
+            // Skip WAV header if present
+            if (pcmAudioBytes.Length > 44 && 
+                pcmAudioBytes[0] == 0x52 && pcmAudioBytes[1] == 0x49 && 
+                pcmAudioBytes[2] == 0x46 && pcmAudioBytes[3] == 0x46)
+            {
+                pcmAudioBytes = pcmAudioBytes.Skip(44).ToArray();
+            }
 
             pushStream.Write(pcmAudioBytes);
             pushStream.Close();
@@ -46,131 +45,57 @@ namespace AI.Thinking.Engine
             return await recognizer.RecognizeOnceAsync();
         }
 
-        private async Task<byte[]> ConvertToPcmWav(byte[] inputBytes)
-        {
-            return await Task.Run(() =>
-            {
-                try
-                {
-                    Console.WriteLine($"🎵 Processing audio ({inputBytes.Length} bytes)...");
-
-                    // Create a temporary file to work with MediaFoundationReader
-                    string tempInputFile = Path.GetTempFileName();
-                    string tempOutputFile = Path.GetTempFileName() + ".wav";
-
-                    try
-                    {
-                        // Write input bytes to temp file
-                        File.WriteAllBytes(tempInputFile, inputBytes);
-                        
-                        // Try to read the audio file
-                        using var reader = new MediaFoundationReader(tempInputFile);
-                        
-                        // Convert to 16kHz, 16-bit, mono
-                        var targetFormat = new WaveFormat(16000, 16, 1);
-                        using var resampler = new MediaFoundationResampler(reader, targetFormat);
-                        
-                        // Write as WAV to temp file
-                        WaveFileWriter.CreateWaveFile(tempOutputFile, resampler);
-                        
-                        // Read the converted file
-                        var result = File.ReadAllBytes(tempOutputFile);
-                        Console.WriteLine($"✅ Audio conversion successful: {result.Length} bytes");
-                        return result;
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"⚠️ MediaFoundation conversion failed: {ex.Message}");
-                        
-                        // Fallback: Try to process as WAV directly
-                        return ProcessAsWav(inputBytes);
-                    }
-                    finally
-                    {
-                        // Cleanup temp files
-                        try
-                        {
-                            if (File.Exists(tempInputFile)) File.Delete(tempInputFile);
-                            if (File.Exists(tempOutputFile)) File.Delete(tempOutputFile);
-                        }
-                        catch { /* Ignore cleanup errors */ }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"❌ Audio processing failed: {ex.Message}");
-                    return ProcessAsWav(inputBytes);
-                }
-            });
-        }
-
-        private byte[] ProcessAsWav(byte[] inputBytes)
+        private async Task<byte[]?> ConvertToPcmWav(byte[] inputBytes)
         {
             try
             {
-                Console.WriteLine("🔄 Attempting to process as WAV format...");
-                
-                using var inputStream = new MemoryStream(inputBytes);
-                using var outputStream = new MemoryStream();
-                
-                // Try to read as WAV
-                using var reader = new WaveFileReader(inputStream);
-                
-                // Check if we need to resample
-                if (reader.WaveFormat.SampleRate == 16000 && 
-                    reader.WaveFormat.Channels == 1 && 
-                    reader.WaveFormat.BitsPerSample == 16)
+                Console.WriteLine($"🎵 Processing audio ({inputBytes.Length} bytes)...");
+
+                // Use FFmpeg to convert any audio format to 16kHz, 16-bit, mono WAV
+                var process = new System.Diagnostics.Process
                 {
-                    // Already in correct format
-                    Console.WriteLine("✅ Audio already in correct format");
-                    return inputBytes;
+                    StartInfo = new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = "ffmpeg",
+                        Arguments = "-i pipe:0 -ar 16000 -ac 1 -sample_fmt s16 -f wav pipe:1",
+                        UseShellExecute = false,
+                        RedirectStandardInput = true,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true
+                    }
+                };
+
+                process.Start();
+
+                // Write input audio to stdin
+                await process.StandardInput.BaseStream.WriteAsync(inputBytes, 0, inputBytes.Length);
+                process.StandardInput.Close();
+
+                // Read converted WAV from stdout
+                var outputStream = new MemoryStream();
+                await process.StandardOutput.BaseStream.CopyToAsync(outputStream);
+                
+                await process.WaitForExitAsync();
+
+                if (process.ExitCode == 0)
+                {
+                    var result = outputStream.ToArray();
+                    Console.WriteLine($"✅ Audio conversion successful: {result.Length} bytes");
+                    return result;
                 }
-                
-                // Need to resample
-                var targetFormat = new WaveFormat(16000, 16, 1);
-                using var resampler = new MediaFoundationResampler(reader, targetFormat);
-                
-                WaveFileWriter.WriteWavFileToStream(outputStream, resampler);
-                
-                var result = outputStream.ToArray();
-                Console.WriteLine($"✅ WAV resampling successful: {result.Length} bytes");
-                return result;
+                else
+                {
+                    var error = await process.StandardError.ReadToEndAsync();
+                    Console.WriteLine($"❌ FFmpeg conversion failed: {error}");
+                    return null;
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"⚠️ WAV processing failed: {ex.Message}");
-                
-                // Final fallback: Create basic WAV header
-                return CreateBasicWavFile(inputBytes);
+                Console.WriteLine($"❌ Audio processing failed: {ex.Message}");
+                return null;
             }
-        }
-
-        private byte[] CreateBasicWavFile(byte[] audioData)
-        {
-            Console.WriteLine("📝 Creating basic WAV file as final fallback...");
-            
-            // Create a basic WAV file with proper header
-            using var memoryStream = new MemoryStream();
-            using var writer = new BinaryWriter(memoryStream);
-
-            // WAV header for 16kHz, 16-bit, mono
-            writer.Write("RIFF".ToCharArray());
-            writer.Write(36 + audioData.Length);
-            writer.Write("WAVE".ToCharArray());
-            writer.Write("fmt ".ToCharArray());
-            writer.Write(16); // PCM format chunk size
-            writer.Write((short)1); // PCM format
-            writer.Write((short)1); // Mono
-            writer.Write(16000); // Sample rate
-            writer.Write(32000); // Byte rate (16000 * 1 * 16 / 8)
-            writer.Write((short)2); // Block align
-            writer.Write((short)16); // Bits per sample
-            writer.Write("data".ToCharArray());
-            writer.Write(audioData.Length);
-            writer.Write(audioData);
-
-            Console.WriteLine($"📝 Created basic WAV file: {memoryStream.Length} bytes");
-            return memoryStream.ToArray();
         }
     }
 }
