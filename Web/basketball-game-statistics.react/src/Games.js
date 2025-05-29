@@ -17,10 +17,36 @@ export default function Games() {
   const [selectedGame, setSelectedGame] = useState(null);
   const [teamStats, setTeamStats] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  
+  // Configuration for carousel based on screen size
+  const getCardsToShow = () => {
+    if (windowWidth <= 480) return 1; // Mobile: 1 card
+    if (windowWidth <= 768) return 2; // Tablet: 2 cards
+    return 3; // Desktop: 3 cards
+  };
+  
+  const cardsToShow = getCardsToShow();
+  const cardWidth = 240; // Width of each card including margin
 
   useEffect(() => {
     fetchGames();
+    
+    // Handle window resize for responsive carousel
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Reset currentIndex when cardsToShow changes to prevent out-of-bounds
+  useEffect(() => {
+    if (currentIndex >= games.length - cardsToShow && games.length > 0) {
+      setCurrentIndex(Math.max(0, games.length - cardsToShow));
+    }
+  }, [cardsToShow, games.length, currentIndex]);
 
   const fetchGames = async () => {
     try {
@@ -54,15 +80,15 @@ export default function Games() {
   };
 
   const handlePrevClick = () => {
-    setCurrentIndex((prevIndex) => 
-      prevIndex === 0 ? games.length - 1 : prevIndex - 1
-    );
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
   };
 
   const handleNextClick = () => {
-    setCurrentIndex((prevIndex) => 
-      prevIndex === games.length - 1 ? 0 : prevIndex + 1
-    );
+    if (currentIndex < games.length - cardsToShow) {
+      setCurrentIndex(currentIndex + 1);
+    }
   };
 
   const renderGameCard = (game, index) => (
@@ -235,13 +261,29 @@ export default function Games() {
   return (
     <div className="games-page">
       <div className="carousel-container">
-        <button className="carousel-button prev" onClick={handlePrevClick}>
+        <button 
+          className="carousel-button prev" 
+          onClick={handlePrevClick}
+          disabled={currentIndex === 0}
+        >
           &lt;
         </button>
-        <div className="carousel" style={{ transform: `translateX(-${currentIndex * 240}px)` }}>
-          {games.map((game, index) => renderGameCard(game, index))}
+        <div className="carousel-viewport">
+          <div 
+            className="carousel" 
+            style={{ 
+              transform: `translateX(-${currentIndex * cardWidth}px)`,
+              width: `${games.length * cardWidth}px`
+            }}
+          >
+            {games.map((game, index) => renderGameCard(game, index))}
+          </div>
         </div>
-        <button className="carousel-button next" onClick={handleNextClick}>
+        <button 
+          className="carousel-button next" 
+          onClick={handleNextClick}
+          disabled={currentIndex >= games.length - cardsToShow}
+        >
           &gt;
         </button>
       </div>

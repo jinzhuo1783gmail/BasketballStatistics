@@ -19,13 +19,17 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
+.carousel-viewport {
+  overflow: hidden;
+  width: calc(3 * 240px); /* Show 3 cards at a time */
+  margin: 0 20px; /* Space for buttons */
+  border-radius: 6px;
+}
+
 .carousel {
   display: flex;
-  overflow: hidden;
-  width: 100%;
-  position: relative;
-  border-radius: 6px;
-  transition: transform 0.3s ease;
+  transition: transform 0.4s ease-in-out;
+  will-change: transform;
 }
 
 .carousel-button {
@@ -50,14 +54,20 @@
   transition: all 0.3s ease;
 }
 
-.carousel-button:hover {
+.carousel-button:hover:not(:disabled) {
   background: linear-gradient(135deg, #cc0e14 0%, #9e0b0f 100%);
   transform: translateY(-50%) scale(1.05);
   box-shadow: 0 4px 12px rgba(158, 11, 15, 0.6);
 }
 
-.carousel-button:active {
+.carousel-button:active:not(:disabled) {
   transform: translateY(-50%) scale(0.95);
+}
+
+.carousel-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .carousel-button.prev {
@@ -72,7 +82,7 @@
   min-width: 220px;
   max-width: 220px;
   width: 220px;
-  margin: 0 8px;
+  margin: 0 10px;
   padding: 15px;
   background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
   border-radius: 8px;
@@ -284,12 +294,15 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .games-page {
-    padding: 8px;
+    padding: 5px;
   }
 
   .carousel-container {
     padding: 10px;
-    margin: 10px 0;
+  }
+
+  .carousel-viewport {
+    width: calc(2 * 240px); /* Show 2 cards on tablets */
   }
 
   .carousel-button {
@@ -372,9 +385,14 @@
     padding: 8px;
   }
 
+  .carousel-viewport {
+    width: 240px; /* Show 1 card on mobile */
+  }
+
   .game-card {
-    min-width: 160px;
-    padding: 10px;
+    min-width: 200px;
+    max-width: 200px;
+    width: 200px;
   }
 
   .game-card-image {

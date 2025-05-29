@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './Admin.css';
 import VoiceStatisticsInput from './VoiceStatisticsInput';
+import CreateGame from './CreateGame';
+import EditGame from './EditGame';
 
 function getApiBaseUrl() {
   if (process.env.NODE_ENV === 'development') {
@@ -11,19 +13,13 @@ function getApiBaseUrl() {
 }
 
 export default function Admin({ onLoginRequired }) {
-  const [activeTab, setActiveTab] = useState('create-game');
   const [user, setUser] = useState(null);
-  const [gameForm, setGameForm] = useState({
-    gameDescription: '',
-    venue: '',
-    matchDate: ''
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState('');
   const [games, setGames] = useState([]);
   const [loadingGames, setLoadingGames] = useState(false);
   const [showVoiceStats, setShowVoiceStats] = useState(false);
   const [selectedGameForStats, setSelectedGameForStats] = useState(null);
+  const [currentPage, setCurrentPage] = useState('admin'); // 'admin', 'create', 'edit'
+  const [selectedGameForEdit, setSelectedGameForEdit] = useState(null);
 
   // Helper function to format dates as dd/MM/yyyy HH:mm
   const formatDate = (dateString) => {
@@ -41,6 +37,23 @@ export default function Admin({ onLoginRequired }) {
     }
   };
 
+  // Helper function to convert API date to datetime-local format (YYYY-MM-DDTHH:MM)
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      // Get local date and time in YYYY-MM-DDTHH:MM format
+      const year = date.getFullYear();
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const day = date.getDate().toString().padStart(2, '0');
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    } catch (error) {
+      return '';
+    }
+  };
+
   useEffect(() => {
     // Check if user is logged in
     const token = localStorage.getItem('authToken');
@@ -54,12 +67,15 @@ export default function Admin({ onLoginRequired }) {
       const expiry = new Date(validUntil);
       
       if (now < expiry) {
-        setUser({
+        const userData = {
           token,
           username,
           userRole,
           validUntil
-        });
+        };
+        setUser(userData);
+        // Load games by default when user is authenticated
+        loadGamesForUser(userData);
       } else {
         // Token expired, redirect to login
         onLoginRequired();
@@ -68,22 +84,60 @@ export default function Admin({ onLoginRequired }) {
       // No login credentials, redirect to login
       onLoginRequired();
     }
+
+    // Handle browser back button
+    const handlePopState = (event) => {
+      const state = event.state;
+      if (state) {
+        if (state.page === 'stats') {
+          setCurrentPage('admin');
+          setShowVoiceStats(true);
+          setSelectedGameForStats(state.selectedGame);
+          setSelectedGameForEdit(null);
+        } else if (state.page === 'edit') {
+          setCurrentPage('edit');
+          setSelectedGameForEdit(state.selectedGame);
+          setShowVoiceStats(false);
+          setSelectedGameForStats(null);
+        } else if (state.page === 'create') {
+          setCurrentPage('create');
+          setSelectedGameForEdit(null);
+          setShowVoiceStats(false);
+          setSelectedGameForStats(null);
+        } else {
+          // Default to admin page
+          setCurrentPage('admin');
+          setSelectedGameForEdit(null);
+          setShowVoiceStats(false);
+          setSelectedGameForStats(null);
+        }
+      } else {
+        // No state means we're going back to the main admin page
+        setCurrentPage('admin');
+        setSelectedGameForEdit(null);
+        setShowVoiceStats(false);
+        setSelectedGameForStats(null);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    // Set initial state for the admin page
+    if (window.history.state === null) {
+      window.history.replaceState({ page: 'admin' }, '', window.location.pathname);
+    }
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
   }, [onLoginRequired]);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setGameForm(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const fetchGames = async () => {
+  const loadGamesForUser = async (userData) => {
     setLoadingGames(true);
     try {
       const response = await fetch(`${getApiBaseUrl()}api/games/1`, {
         headers: {
-          'Authorization': `Bearer ${user.token}`
+          'Authorization': `Bearer ${userData.token}`
         }
       });
       
@@ -105,75 +159,22 @@ export default function Admin({ onLoginRequired }) {
     setLoadingGames(false);
   };
 
-  const handleTabChange = (tabName) => {
-    setActiveTab(tabName);
-    if (tabName === 'manage-games' && user) {
-      fetchGames();
-    }
-  };
-
   const handleStatsInput = (game) => {
     setSelectedGameForStats(game);
     setShowVoiceStats(true);
+    // Push stats state to history
+    window.history.pushState({ 
+      page: 'stats', 
+      selectedGame: game 
+    }, '', window.location.pathname);
   };
 
   const handleBackToGames = () => {
     setShowVoiceStats(false);
     setSelectedGameForStats(null);
-  };
-
-  const handleDeleteGame = (gameId) => {
-    if (window.confirm('Are you sure you want to delete this game?')) {
-      // TODO: Implement delete API call
-      alert(`Delete game with ID: ${gameId}`);
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setSubmitMessage('');
-
-    try {
-      const gameData = {
-        id: 0, // Always set to 0 as requested
-        clubId: 1, // Hardcoded as requested
-        gameDescription: gameForm.gameDescription,
-        venue: gameForm.venue,
-        matchDate: gameForm.matchDate,
-        createDate: new Date().toISOString(),
-        createBy: user.username,
-        isActive: true,
-        instruction: '',
-        playerStatistics: []
-      };
-
-      const response = await fetch(`${getApiBaseUrl()}api/games`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user.token}`
-        },
-        body: JSON.stringify(gameData)
-      });
-
-      if (response.status === 200) {
-        // Show popup message box for successful creation
-        alert('Game created successfully!');
-        setGameForm({
-          gameDescription: '',
-          venue: '',
-          matchDate: ''
-        });
-        setSubmitMessage('Game created successfully!');
-      } else {
-        setSubmitMessage('Error creating game. Please try again.');
-      }
-    } catch (error) {
-      setSubmitMessage('Error creating game. Please check your connection.');
-    }
-
-    setIsSubmitting(false);
+    setSelectedGameForEdit(null);
+    // Push admin state to history
+    window.history.pushState({ page: 'admin' }, '', window.location.pathname);
   };
 
   // Don't render anything if user is not authenticated
@@ -181,6 +182,39 @@ export default function Admin({ onLoginRequired }) {
     return null;
   }
 
+  // Render different pages based on currentPage state
+  if (currentPage === 'create') {
+    return (
+      <CreateGame
+        onBack={() => {
+          setCurrentPage('admin');
+          setSelectedGameForEdit(null);
+          loadGamesForUser(user); // Refresh games list
+          // Push admin state to history
+          window.history.pushState({ page: 'admin' }, '', window.location.pathname);
+        }}
+        onLoginRequired={onLoginRequired}
+      />
+    );
+  }
+
+  if (currentPage === 'edit' && selectedGameForEdit) {
+    return (
+      <EditGame
+        game={selectedGameForEdit}
+        onBack={() => {
+          setCurrentPage('admin');
+          setSelectedGameForEdit(null);
+          loadGamesForUser(user); // Refresh games list
+          // Push admin state to history
+          window.history.pushState({ page: 'admin' }, '', window.location.pathname);
+        }}
+        onLoginRequired={onLoginRequired}
+      />
+    );
+  }
+
+  // Default admin page
   return (
     <div className="admin-page">
       <div className="admin-header">
@@ -188,161 +222,105 @@ export default function Admin({ onLoginRequired }) {
         <p>Welcome, {user.username}</p>
       </div>
 
-      <div className="admin-tabs">
-        <button 
-          className={`tab-button ${activeTab === 'create-game' ? 'active' : ''}`}
-          onClick={() => handleTabChange('create-game')}
-        >
-          Create Game
-        </button>
-        <button 
-          className={`tab-button ${activeTab === 'manage-games' ? 'active' : ''}`}
-          onClick={() => handleTabChange('manage-games')}
-        >
-          Manage Games
-        </button>
-      </div>
-
       <div className="admin-content">
-        {activeTab === 'create-game' && (
-          <div className="create-game-section">
-            <h2>Create New Game</h2>
-            <form onSubmit={handleSubmit} className="game-form">
-              <div className="form-group">
-                <label htmlFor="gameDescription">Game Description:</label>
-                <input
-                  type="text"
-                  id="gameDescription"
-                  name="gameDescription"
-                  value={gameForm.gameDescription}
-                  onChange={handleInputChange}
-                  placeholder="e.g., Test Game 2"
-                  required
-                />
+        <div className="manage-games-section">
+          {showVoiceStats && selectedGameForStats ? (
+            <VoiceStatisticsInput
+              gameId={selectedGameForStats.id}
+              gameName={selectedGameForStats.gameDescription}
+              onBack={handleBackToGames}
+            />
+          ) : (
+            <>
+              <div className="games-header">
+                <h2>Manage Games</h2>
+                <button 
+                  className="create-game-btn"
+                  onClick={() => {
+                    setCurrentPage('create');
+                    // Push create state to history
+                    window.history.pushState({ page: 'create' }, '', window.location.pathname);
+                  }}
+                >
+                  <span className="create-game-icon">+</span>
+                  Create Game
+                </button>
               </div>
-
-              <div className="form-group">
-                <label htmlFor="venue">Venue:</label>
-                <input
-                  type="text"
-                  id="venue"
-                  name="venue"
-                  value={gameForm.venue}
-                  onChange={handleInputChange}
-                  placeholder="e.g., City Arena"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="matchDate">Match Date & Time:</label>
-                <input
-                  type="datetime-local"
-                  id="matchDate"
-                  name="matchDate"
-                  value={gameForm.matchDate}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-
-              <div className="form-info">
-                <p><strong>Club ID:</strong> 1 (Auto-assigned)</p>
-                <p><strong>Created By:</strong> {user.username}</p>
-                <p><strong>Status:</strong> Active</p>
-              </div>
-
-              <button 
-                type="submit" 
-                className="submit-button"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? 'Creating Game...' : 'Create Game'}
-              </button>
-
-              {submitMessage && (
-                <div className={`submit-message ${submitMessage.includes('Error') ? 'error' : 'success'}`}>
-                  {submitMessage}
+              {loadingGames ? (
+                <div className="loading-games">Loading games...</div>
+              ) : (
+                <div className="games-table-container">
+                  {games.length === 0 ? (
+                    <p>No games found.</p>
+                  ) : (
+                    <table className="games-table">
+                      <thead>
+                        <tr>
+                          <th>Game Description</th>
+                          <th>Game Time</th>
+                          <th>Venue</th>
+                          <th>Create Time</th>
+                          <th>Statistics</th>
+                          <th>Edit</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {games.map((game, index) => (
+                          <tr key={game.id || index}>
+                            <td>{game.gameDescription || 'N/A'}</td>
+                            <td>
+                              {game.matchDate 
+                                ? formatDate(game.matchDate)
+                                : 'TBA'
+                              }
+                            </td>
+                            <td>{game.venue || 'N/A'}</td>
+                            <td>
+                              {game.createDate 
+                                ? formatDate(game.createDate)
+                                : 'N/A'
+                              }
+                            </td>
+                            <td>
+                              <div className="action-buttons">
+                                <button 
+                                  className="action-btn stats-btn"
+                                  onClick={() => handleStatsInput(game)}
+                                  title="Input Statistics"
+                                >
+                                  📊
+                                </button>
+                              </div>
+                            </td>
+                            <td>
+                              <div className="action-buttons">
+                                <button 
+                                  className="action-btn edit-btn"
+                                  onClick={() => {
+                                    setSelectedGameForEdit(game);
+                                    setCurrentPage('edit');
+                                    // Push edit state to history with selected game
+                                    window.history.pushState({ 
+                                      page: 'edit', 
+                                      selectedGame: game 
+                                    }, '', window.location.pathname);
+                                  }}
+                                  title="Edit Game"
+                                >
+                                  ✏️
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
                 </div>
               )}
-            </form>
-          </div>
-        )}
-
-        {activeTab === 'manage-games' && (
-          <div className="manage-games-section">
-            {showVoiceStats && selectedGameForStats ? (
-              <VoiceStatisticsInput
-                gameId={selectedGameForStats.id}
-                gameName={selectedGameForStats.gameDescription}
-                onBack={handleBackToGames}
-              />
-            ) : (
-              <>
-                <h2>Manage Games</h2>
-                {loadingGames ? (
-                  <div className="loading-games">Loading games...</div>
-                ) : (
-                  <div className="games-table-container">
-                    {games.length === 0 ? (
-                      <p>No games found.</p>
-                    ) : (
-                      <table className="games-table">
-                        <thead>
-                          <tr>
-                            <th>Game Description</th>
-                            <th>Game Time</th>
-                            <th>Venue</th>
-                            <th>Create Time</th>
-                            <th>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {games.map((game, index) => (
-                            <tr key={game.id || index}>
-                              <td>{game.gameDescription || 'N/A'}</td>
-                              <td>
-                                {game.matchDate 
-                                  ? formatDate(game.matchDate)
-                                  : 'TBA'
-                                }
-                              </td>
-                              <td>{game.venue || 'N/A'}</td>
-                              <td>
-                                {game.createDate 
-                                  ? formatDate(game.createDate)
-                                  : 'N/A'
-                                }
-                              </td>
-                              <td>
-                                <div className="action-buttons">
-                                  <button 
-                                    className="action-btn stats-btn"
-                                    onClick={() => handleStatsInput(game)}
-                                    title="Input Statistics"
-                                  >
-                                    📊
-                                  </button>
-                                  <button 
-                                    className="action-btn delete-btn"
-                                    onClick={() => handleDeleteGame(game.id)}
-                                    title="Delete Game"
-                                  >
-                                    🗑️
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    )}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

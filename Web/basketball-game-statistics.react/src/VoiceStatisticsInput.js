@@ -14,10 +14,68 @@ export default function VoiceStatisticsInput({ gameId, gameName, onBack }) {
   const [language, setLanguage] = useState('zh-CN');
   const [statistics, setStatistics] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
   
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const streamRef = useRef(null);
+
+  // Load existing statistics when component mounts
+  useEffect(() => {
+    loadExistingStatistics();
+  }, [gameId]);
+
+  const loadExistingStatistics = async () => {
+    setIsLoadingStats(true);
+    try {
+      const token = localStorage.getItem('authToken');
+      const apiUrl = `${getApiBaseUrl()}api/playerstatistics/game/${gameId}`;
+      
+      console.log('📊 Loading existing statistics from:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const existingStats = await response.json();
+        console.log('📊 Loaded existing statistics:', existingStats);
+        
+        // Convert existing stats to the same format as new entries
+        const formattedStats = existingStats.map(stat => ({
+          id: stat.id || stat.Id || Date.now() + Math.random(),
+          type: 'success',
+          data: stat,
+          message: formatTeamInfo(
+            stat.Team || stat.team,
+            stat.PlayerNumber || stat.playerNumber,
+            stat.InputText || stat.inputText,
+            stat.id || stat.Id,
+            stat
+          ),
+          timestamp: stat.createDate ? new Date(stat.createDate) : new Date(),
+          isExisting: true
+        }));
+        
+        // Sort by timestamp, most recent first
+        formattedStats.sort((a, b) => b.timestamp - a.timestamp);
+        
+        setStatistics(formattedStats);
+        console.log('✅ Statistics loaded and formatted:', formattedStats.length, 'items');
+      } else {
+        console.log('⚠️ No existing statistics found or error loading:', response.status);
+        setStatistics([]);
+      }
+    } catch (error) {
+      console.error('❌ Error loading existing statistics:', error);
+      setStatistics([]);
+    }
+    setIsLoadingStats(false);
+  };
 
   useEffect(() => {
     return () => {
@@ -27,6 +85,20 @@ export default function VoiceStatisticsInput({ gameId, gameName, onBack }) {
       }
     };
   }, []);
+
+  // Handle browser back button
+  useEffect(() => {
+    const handlePopState = (event) => {
+      // When back button is pressed, go back to admin
+      onBack();
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [onBack]);
 
   // Test function to verify Unicode display - you can call this from console
   const testUnicodeDisplay = () => {
@@ -521,23 +593,35 @@ export default function VoiceStatisticsInput({ gameId, gameName, onBack }) {
 
       <div className="statistics-list">
         <h3>Statistics Log</h3>
-        {statistics.length === 0 ? (
+        {isLoadingStats ? (
+          <div className="loading-stats">
+            <div className="loading-spinner">🔄</div>
+            <p>Loading existing statistics...</p>
+          </div>
+        ) : statistics.length === 0 ? (
           <p className="no-stats">No statistics recorded yet</p>
         ) : (
           <div className="stats-table">
-            {statistics.map((stat) => (
-              <div key={stat.id} className={`stat-entry ${stat.type}`}>
-                <div className="stat-icon">
-                  {stat.type === 'success' ? '✅' : '❌'}
-                </div>
-                <div className="stat-content">
-                  <div className="stat-message">{stat.message}</div>
-                  <div className="stat-time">
-                    {stat.timestamp.toLocaleTimeString()}
+            {statistics.map((stat) => {
+              // Determine team for color coding
+              const team = stat.data?.Team || stat.data?.team || 0;
+              const teamClass = team === 1 ? 'light-team' : team === 2 ? 'dark-team' : '';
+              
+              return (
+                <div key={stat.id} className={`stat-entry ${stat.type} ${teamClass}`}>
+                  <div className="stat-icon">
+                    {stat.type === 'success' ? '✅' : '❌'}
+                  </div>
+                  <div className="stat-content">
+                    <div className="stat-message">{stat.message}</div>
+                    <div className="stat-time">
+                      {stat.timestamp.toLocaleTimeString()}
+                      {stat.isExisting && <span className="existing-indicator"> (existing)</span>}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
