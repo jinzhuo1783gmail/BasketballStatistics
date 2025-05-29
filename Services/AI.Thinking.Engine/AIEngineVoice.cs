@@ -23,7 +23,7 @@ namespace AI.Thinking.Engine
             byte[] audioBytes = Convert.FromBase64String(base64);
 
             using var memoryStream = new MemoryStream(audioBytes);
-            using var audioFormat = AudioStreamFormat.GetWaveFormatPCM(16000, 16, 1); // Adjust format to match your audio
+            var audioFormat = AudioStreamFormat.GetCompressedFormat(AudioStreamContainerFormat.OGG_OPUS);
             using var pushStream = AudioInputStream.CreatePushStream(audioFormat);
 
             // Write the decoded audio into the push stream
