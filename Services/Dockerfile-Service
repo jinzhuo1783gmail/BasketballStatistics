@@ -17,38 +17,18 @@ RUN dotnet build ./BasketballGameStatisticsServices/BasketballGameStatisticsServ
 # Use a smaller runtime image to run the application
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 
-# Install GStreamer and required plugins for Azure Speech Service
-RUN apt-get update && apt-get install -y \
-    gstreamer1.0-plugins-base \
-    gstreamer1.0-plugins-good \
-    gstreamer1.0-plugins-bad \
-    gstreamer1.0-plugins-ugly \
-    gstreamer1.0-libav \
-    gstreamer1.0-tools \
-    gstreamer1.0-alsa \
-    gstreamer1.0-pulseaudio \
-    libgstreamer1.0-dev \
-    libgstreamer-plugins-base1.0-dev \
-    && rm -rf /var/lib/apt/lists/*
-
 # Set the working directory inside the runtime container
 WORKDIR /app
 
-# Only expose HTTP port (1001)
-ENV ASPNETCORE_URLS=http://+:1001
+# Only expose HTTP port (7092)
+ENV ASPNETCORE_URLS=http://+:1001  
 
-# Set environment variables for GStreamer
-ENV GST_PLUGIN_PATH=/usr/lib/x86_64-linux-gnu/gstreamer-1.0
-ENV GST_DEBUG=1
 
 # Copy build output from the build stage
 COPY --from=build /app/build ./
 
-# Expose port 1001 (HTTP) to the host
+# Expose ports 1001 (HTTP) and 1001 (HTTPS) to the host
 EXPOSE 1001
-
-# Verify GStreamer installation (optional, for debugging)
-RUN gst-inspect-1.0 --version
 
 # Set the entry point to run the .NET application
 ENTRYPOINT ["dotnet", "BasketballGameStatisticsServices.dll"]
