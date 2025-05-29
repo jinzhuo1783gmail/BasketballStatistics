@@ -27,6 +27,23 @@ namespace BasketballGameStatisticsServices.Managers
             return await _repository.Add(game);
         }
 
+        public async Task<Game> UpdateGame(Game game)
+        {
+            var updateGame = await _repository.GetById(game.Id);
+
+            if (updateGame != null) 
+            { 
+                updateGame.Venue = game.Venue;
+                updateGame.GameDescription = game.GameDescription;
+                updateGame.MatchDate = game.MatchDate;
+
+                await _repository.Save();
+                return updateGame;
+            }
+
+            throw new Exception($"Game with id {game.Id} does not exist in the db ");
+        }
+
         public async Task<bool> DeactivateGames(int gameId)
         {
             var existGame = await _repository.GetById(gameId);

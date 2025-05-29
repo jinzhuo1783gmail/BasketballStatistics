@@ -19,6 +19,8 @@ namespace BasketballGameStatistics.SqlServer.EFCore
         Task Update(T entity);
 
         Task Delete(int id);
+
+        Task Save();
     }
 
     public interface IClubRepository : IRepository<Club>
@@ -36,6 +38,7 @@ namespace BasketballGameStatistics.SqlServer.EFCore
         Task<IEnumerable<PlayerStatistic>> GetByGameAndTeam(int gameId, int team);
         Task<PlayerStatistic?> GetByGameTeamPlayer(int gameId, int team, int playerNumber);
 
+        Task<IEnumerable<PlayerStatistic>> GetByGame(int gameId);
         Task<List<PlayerStatistic>> GetGamePlayersAggregatedStats(int gameId);
     }
 }

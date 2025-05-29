@@ -1,0 +1,160 @@
+/* Reset default styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+}
+
+.App {
+  text-align: left;
+}
+
+/* Header Styles */
+.header {
+  width: 100%;
+}
+
+.top-bar {
+  background-color: #9e0b0f;
+  color: white;
+  padding: 5px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.welcome-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.welcome-user {
+  font-size: 12px;
+  color: #ffffff;
+  margin: 0;
+}
+
+.bulls-signature {
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  color: #ffffff;
+  margin: 0;
+}
+
+.bulls-signature:hover {
+  color: #f0f0f0;
+  text-decoration: underline;
+}
+
+.main-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px 20px 10px 20px;
+  background-color: #000;
+}
+
+.logo-container {
+  flex: 0 0 auto;
+}
+
+.bulls-logo {
+  height: 50px;
+}
+
+.main-nav {
+  flex: 1 1 auto;
+  text-align: center;
+}
+
+.main-nav ul {
+  display: flex;
+  justify-content: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.main-nav li {
+  margin: 0 30px;
+  vertical-align: middle;
+  display: flex;
+  align-items: center;
+}
+
+.main-nav a {
+  color: white;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 5px 0;
+  transition: color 0.3s;
+}
+
+.main-nav a:hover,
+.main-nav a.active {
+  color: #fff;
+  border-bottom: 2px solid #9e0b0f;
+}
+
+.tma-logo-container {
+  flex: 0 0 auto;
+}
+
+.tma-logo {
+  height: 30px;
+}
+
+.bull-icon-container {
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+}
+
+.bull-icon {
+  height: 40px;
+  width: auto;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 60px;
+  margin-top: -15px;
+  margin-left: -50px;
+}
+
+.main-nav .active {
+  /* These styles cause vertical misalignment */
+  /* margin-left: 4px; */ /* Removed */
+  /* position: relative; */ /* Removed */
+  /* top: -6px; */ /* Removed */
+}
+
+/* App-wide animations */
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

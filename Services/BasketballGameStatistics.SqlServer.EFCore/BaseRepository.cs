@@ -54,5 +54,10 @@ namespace BasketballGameStatistics.SqlServer.EFCore
                 await _context.SaveChangesAsync();
             }
         }
+
+        public async Task Save()
+        {
+            await _context.SaveChangesAsync();
+        }
     }
 }

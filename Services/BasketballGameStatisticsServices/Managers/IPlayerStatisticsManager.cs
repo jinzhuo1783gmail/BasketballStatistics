@@ -6,6 +6,8 @@ namespace BasketballGameStatisticsServices.Managers
     {
         Task<PlayerStatistic> AddSingleVoiceStatistic(int matchId, string base64, string language);
 
+        Task<IReadOnlyList<PlayerStatistic>> GetPlayerStatisticByGame(int matchId);
+
         Task<bool> RevertPlayerStatistic(long Id);
     }
 }

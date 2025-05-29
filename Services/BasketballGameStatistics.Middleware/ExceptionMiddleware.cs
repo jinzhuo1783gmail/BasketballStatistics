@@ -33,7 +33,7 @@ namespace BasketballGameStatistics.Middleware
                 {
                     StatusCode = context.Response.StatusCode,
                     Message = "An unexpected error occurred. Please try again later.",
-                    Detailed = ex.Message // Remove in production for security reasons
+                    Exception = ex.ToString() // Full exception dump (stack trace etc.)
                 };
 
                 var jsonResponse = JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true });

@@ -37,6 +37,22 @@ namespace BasketballGameStatisticsServices.Controllers
         }
 
         [Authorize]
+        [HttpGet("game/{Id}")]
+        public async Task<IActionResult> GetPlayerStatisticByGame(int Id)
+        {
+            _logger.LogInformation($"receive request GetPlayerStatisticByGame with game id {Id}");
+
+            var result = await _playerStatisticsManager.GetPlayerStatisticByGame(Id);
+
+            if (result == null) 
+            { 
+                return BadRequest("Failed to GetPlayerStatisticByGame request.");
+            }
+
+            return Ok(result);
+        }
+
+        [Authorize]
         [HttpPatch("revert")]
         public async Task<IActionResult> RevertPlayerStatistic([FromBody] RevertPlayerStaticsViewModel request)
         {

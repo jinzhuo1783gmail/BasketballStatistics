@@ -14,10 +14,18 @@ namespace BasketballGameStatistics.SqlServer.EFCore
         {
         }
 
+        public async Task<IEnumerable<PlayerStatistic>> GetByGame(int gameId)
+        {
+            return await _context.PlayerStatistics
+                .Where(p => p.GameId == gameId && p.IsActive)
+                .OrderByDescending(p => p.CreateTime)
+                .ToListAsync();
+        }
+
         public async Task<IEnumerable<PlayerStatistic>> GetByGameAndTeam(int gameId, int team)
         {
             return await _context.PlayerStatistics
-                .Where(p => p.GameId == gameId && p.Team == team)
+                .Where(p => p.GameId == gameId && p.Team == team && p.IsActive)
                 .ToListAsync();
         }
 
@@ -27,7 +35,9 @@ namespace BasketballGameStatistics.SqlServer.EFCore
                 .FirstOrDefaultAsync(p =>
                     p.GameId == gameId &&
                     p.Team == team &&
-                    p.PlayerNumber == playerNumber);
+                    p.PlayerNumber == playerNumber &&
+                    p.IsActive == true);
+                    
         }
 
 

@@ -124,6 +124,11 @@ namespace BasketballGameStatisticsServices.Managers
             return await _repository.Add(statistic);
         }
 
+        public async Task<IReadOnlyList<PlayerStatistic>> GetPlayerStatisticByGame(int matchId)
+        {
+            return (await _repository.GetByGame(matchId)).ToList();
+
+        }
         public async Task<bool> RevertPlayerStatistic(long Id)
         {
             var statistic = await _repository.GetByLongId(Id);

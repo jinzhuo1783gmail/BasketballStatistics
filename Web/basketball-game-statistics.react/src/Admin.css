@@ -1,0 +1,437 @@
+.admin-page {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #f5f5f5;
+  min-height: calc(100vh - 120px);
+  perspective: 1000px;
+}
+
+.admin-header {
+  background: linear-gradient(135deg, #9e0b0f, #c41e3a);
+  color: white;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  text-align: center;
+  box-shadow: 
+    0 8px 25px rgba(158, 11, 15, 0.3),
+    0 4px 12px rgba(0, 0, 0, 0.15),
+    inset 0 2px 0 rgba(255, 255, 255, 0.2);
+  transform: translateZ(20px) rotateX(2deg);
+}
+
+.admin-header h1 {
+  margin: 0 0 10px 0;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.admin-header p {
+  margin: 0;
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+.admin-tabs {
+  display: flex;
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.15),
+    0 3px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  transform: translateZ(15px) rotateX(1deg);
+}
+
+.tab-button {
+  flex: 1;
+  padding: 15px 20px;
+  background-color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border-bottom: 3px solid transparent;
+  box-shadow: 
+    inset 0 2px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.05);
+  transform: translateZ(5px);
+}
+
+.tab-button:hover {
+  background-color: #f8f8f8;
+  transform: translateZ(8px) translateY(-1px);
+  box-shadow: 
+    inset 0 2px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.1),
+    0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.tab-button.active {
+  background-color: #9e0b0f;
+  color: white;
+  border-bottom-color: #7a0a0d;
+  box-shadow: 
+    inset 0 2px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -2px 0 rgba(122, 10, 13, 0.5),
+    0 6px 12px rgba(158, 11, 15, 0.4);
+  transform: translateZ(10px) translateY(-2px);
+}
+
+.admin-content {
+  background-color: white;
+  border-radius: 8px;
+  padding: 30px;
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.2),
+    0 5px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transform: translateZ(10px) rotateX(1deg);
+  position: relative;
+}
+
+.admin-content::before {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 10%;
+  right: 10%;
+  height: 15px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 50%;
+  filter: blur(10px);
+  z-index: -1;
+}
+
+.create-game-section h2,
+.manage-games-section h2 {
+  color: #9e0b0f;
+  margin-bottom: 20px;
+  font-size: 24px;
+  border-bottom: 2px solid #9e0b0f;
+  padding-bottom: 10px;
+}
+
+/* Override for Manage Games heading */
+.manage-games-section h2 {
+  color: #000000;
+  border-bottom: 2px solid #000000;
+}
+
+.game-form {
+  max-width: 600px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  box-shadow: 
+    inset 0 3px 6px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 2px 4px rgba(0, 0, 0, 0.05);
+  transform: translateZ(2px);
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #9e0b0f;
+  box-shadow: 
+    0 0 0 3px rgba(158, 11, 15, 0.1),
+    inset 0 3px 6px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 4px 8px rgba(158, 11, 15, 0.2);
+  transform: translateZ(5px) translateY(-1px);
+}
+
+.form-info {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 6px;
+  margin: 20px 0;
+  border-left: 4px solid #9e0b0f;
+}
+
+.form-info p {
+  margin: 5px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.submit-button {
+  background: linear-gradient(135deg, #9e0b0f, #c41e3a);
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+  box-shadow: 
+    0 6px 20px rgba(158, 11, 15, 0.4),
+    0 3px 8px rgba(0, 0, 0, 0.2),
+    inset 0 2px 0 rgba(255, 255, 255, 0.2);
+  transform: translateZ(5px);
+}
+
+.submit-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #7a0a0d, #a01729);
+  transform: translateZ(8px) translateY(-2px);
+  box-shadow: 
+    0 10px 30px rgba(158, 11, 15, 0.5),
+    0 5px 15px rgba(0, 0, 0, 0.3),
+    inset 0 2px 0 rgba(255, 255, 255, 0.3);
+}
+
+.submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.submit-message {
+  margin-top: 15px;
+  padding: 12px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.submit-message.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.submit-message.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.manage-games-section p {
+  color: #666;
+  font-size: 16px;
+  text-align: center;
+  margin-top: 40px;
+}
+
+.loading-games {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-size: 16px;
+}
+
+.games-table-container {
+  margin-top: 20px;
+  overflow-x: scroll;
+}
+
+.games-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.15),
+    0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.games-table th {
+  background: #fde2e4;
+  color: #721c24;
+  padding: 12px 15px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.games-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #e9ecef;
+  color: #333;
+  font-size: 14px;
+}
+
+.games-table tr:hover {
+  background-color: #f8f9fa;
+}
+
+.games-table tr:last-child td {
+  border-bottom: none;
+}
+
+.games-table tbody tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+.games-table tbody tr:nth-child(even):hover {
+  background-color: #e9ecef;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+.action-btn {
+  background: linear-gradient(135deg, #ffffff, #f8f9fa);
+  border: 2px solid #dee2e6;
+  border-radius: 6px;
+  padding: 6px 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transform: translateZ(2px);
+  min-width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-btn:hover {
+  transform: translateZ(4px) translateY(-1px);
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.stats-btn:hover {
+  background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
+  border-color: #4caf50;
+  box-shadow: 
+    0 4px 8px rgba(76, 175, 80, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.delete-btn:hover {
+  background: linear-gradient(135deg, #ffebee, #ffcdd2);
+  border-color: #f44336;
+  box-shadow: 
+    0 4px 8px rgba(244, 67, 54, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.action-btn:active {
+  transform: translateZ(1px) translateY(0px);
+  box-shadow: 
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .admin-page {
+    padding: 15px;
+  }
+  
+  .admin-header {
+    padding: 15px;
+  }
+  
+  .admin-header h1 {
+    font-size: 24px;
+  }
+  
+  .admin-content {
+    padding: 20px;
+  }
+  
+  .tab-button {
+    padding: 12px 15px;
+    font-size: 14px;
+  }
+  
+  .form-group input {
+    padding: 10px;
+  }
+  
+  .games-table {
+    font-size: 12px;
+  }
+  
+  .games-table th,
+  .games-table td {
+    padding: 8px 10px;
+  }
+  
+  .action-btn {
+    min-width: 28px;
+    height: 28px;
+    font-size: 14px;
+    padding: 4px 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-tabs {
+    flex-direction: column;
+  }
+  
+  .tab-button {
+    border-bottom: 1px solid #eee;
+  }
+  
+  .tab-button:last-child {
+    border-bottom: none;
+  }
+  
+  .tab-button.active {
+    border-bottom-color: #9e0b0f;
+  }
+  
+  .games-table {
+    font-size: 11px;
+  }
+  
+  .games-table th,
+  .games-table td {
+    padding: 6px 8px;
+  }
+  
+  .games-table-container {
+    overflow-x: scroll;
+  }
+  
+  .action-btn {
+    min-width: 24px;
+    height: 24px;
+    font-size: 12px;
+    padding: 2px 4px;
+  }
+  
+  .action-buttons {
+    gap: 4px;
+  }
+} 

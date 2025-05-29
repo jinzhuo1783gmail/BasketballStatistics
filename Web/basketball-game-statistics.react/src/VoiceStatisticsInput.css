@@ -1,0 +1,290 @@
+/* Add at the top of the file for Unicode support */
+* {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    'Microsoft YaHei', 'SimSun', sans-serif;
+}
+
+.voice-statistics-input {
+  padding: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 
+    0 8px 25px rgba(0, 0, 0, 0.15),
+    0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateZ(5px);
+}
+
+.voice-header {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.back-btn {
+  background: linear-gradient(135deg, #6c757d, #8a9195);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-bottom: 10px;
+  transition: all 0.3s ease;
+  box-shadow: 
+    0 3px 8px rgba(108, 117, 125, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: translateZ(2px);
+}
+
+.back-btn:hover {
+  background: linear-gradient(135deg, #5a6268, #6c757d);
+  transform: translateZ(4px) translateY(-1px);
+  box-shadow: 
+    0 5px 12px rgba(108, 117, 125, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.voice-header h2 {
+  color: #000000;
+  margin: 10px 0;
+  font-size: 24px;
+}
+
+.voice-header p {
+  color: #666;
+  margin: 0;
+  font-size: 16px;
+}
+
+.statistics-list {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transform: translateZ(3px);
+}
+
+.statistics-list h3 {
+  color: #333;
+  margin-bottom: 15px;
+  font-size: 18px;
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 8px;
+}
+
+.no-stats {
+  text-align: center;
+  color: #999;
+  font-style: italic;
+  padding: 20px;
+}
+
+.stats-table {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.stat-entry {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transform: translateZ(1px);
+  transition: all 0.3s ease;
+}
+
+.stat-entry:hover {
+  transform: translateZ(2px) translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stat-entry.success {
+  background: linear-gradient(135deg, #d4edda, #c3e6cb);
+  border-left: 4px solid #28a745;
+}
+
+.stat-entry.error {
+  background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+  border-left: 4px solid #dc3545;
+}
+
+.stat-icon {
+  font-size: 18px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-message {
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 4px;
+  line-height: 1.4;
+  /* Ensure proper Unicode rendering */
+  unicode-bidi: normal;
+  direction: ltr;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Support for mixed Chinese and English text */
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.stat-time {
+  font-size: 12px;
+  color: #666;
+}
+
+.voice-controls {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transform: translateZ(3px);
+}
+
+.language-selector {
+  margin-bottom: 20px;
+}
+
+.language-selector label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+}
+
+.language-selector select {
+  padding: 8px 12px;
+  border: 2px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.05),
+    0 1px 2px rgba(0, 0, 0, 0.05);
+  transform: translateZ(1px);
+}
+
+.language-selector select:focus {
+  outline: none;
+  border-color: #4caf50;
+  box-shadow: 
+    0 0 0 3px rgba(76, 175, 80, 0.1),
+    inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.voice-record-btn {
+  background: linear-gradient(135deg, #28a745, #34ce57);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 50px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  user-select: none;
+  box-shadow: 
+    0 6px 20px rgba(40, 167, 69, 0.4),
+    0 3px 8px rgba(0, 0, 0, 0.2),
+    inset 0 2px 0 rgba(255, 255, 255, 0.2);
+  transform: translateZ(5px);
+  min-width: 200px;
+}
+
+.voice-record-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #218838, #28a745);
+  transform: translateZ(8px) translateY(-2px);
+  box-shadow: 
+    0 10px 30px rgba(40, 167, 69, 0.5),
+    0 5px 15px rgba(0, 0, 0, 0.3),
+    inset 0 2px 0 rgba(255, 255, 255, 0.3);
+}
+
+.voice-record-btn.recording {
+  background: linear-gradient(135deg, #dc3545, #e85568);
+  animation: pulse 1s infinite;
+  box-shadow: 
+    0 6px 20px rgba(220, 53, 69, 0.4),
+    0 3px 8px rgba(0, 0, 0, 0.2),
+    inset 0 2px 0 rgba(255, 255, 255, 0.2);
+}
+
+.voice-record-btn.loading {
+  background: linear-gradient(135deg, #6c757d, #8a9195);
+  cursor: not-allowed;
+  box-shadow: 
+    0 4px 12px rgba(108, 117, 125, 0.3),
+    0 2px 6px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.voice-record-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: translateZ(2px);
+}
+
+@keyframes pulse {
+  0% { transform: translateZ(8px) scale(1); }
+  50% { transform: translateZ(8px) scale(1.05); }
+  100% { transform: translateZ(8px) scale(1); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .voice-statistics-input {
+    padding: 15px;
+  }
+  
+  .voice-header h2 {
+    font-size: 20px;
+  }
+  
+  .voice-record-btn {
+    padding: 12px 24px;
+    font-size: 16px;
+    min-width: 180px;
+  }
+  
+  .stat-entry {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .voice-statistics-input {
+    padding: 10px;
+  }
+  
+  .voice-header h2 {
+    font-size: 18px;
+  }
+  
+  .voice-record-btn {
+    padding: 10px 20px;
+    font-size: 14px;
+    min-width: 160px;
+  }
+  
+  .stat-message {
+    font-size: 14px;
+  }
+} 

@@ -43,6 +43,21 @@ namespace BasketballGameStatisticsServices.Controllers
             return Ok(result);
         }
 
+        [Authorize]
+        [HttpPatch]
+        public async Task<IActionResult> UpdateGame([FromBody] Game request)
+        {
+            _logger.LogInformation("receive request Game");
+            if (request == null)
+                return BadRequest("Request string cannot be empty.");
+
+            request.Instruction = _engineConfig.EngineSystemPrompt;
+
+            var result = await _gameManager.UpdateGame(request);
+
+            return Ok(result);
+        }
+
         [HttpGet("statistics/{Id}")]
         public async Task<IActionResult> GetGameStatistics(int Id)
         {

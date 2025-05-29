@@ -9,7 +9,7 @@ namespace BasketballGameStatisticsServices.Managers
 
         Task<Game> AddGame(Game game);
         Task<bool> DeactivateGames(int gameId);
-
+        Task<Game> UpdateGame(Game game);
         Task<List<TeamStatisticsResponseViewModel>> GetTeamsStatistics(int gameId);
     }
 }

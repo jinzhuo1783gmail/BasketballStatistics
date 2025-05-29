@@ -23,6 +23,8 @@ namespace BasketballGameStatistics.SqlServer.EFCore
                 games = games.Where(g => g.IsActive);
             }
 
+            games = games.OrderByDescending(g => g.MatchDate);
+
             return await games.ToListAsync();
         }
     }
