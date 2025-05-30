@@ -26,13 +26,5 @@ RUN npm install -g serve
 # Expose port 1002
 EXPOSE 1002
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD if [ "$NODE_ENV" = "production" ]; then \
-            wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1; \
-        else \
-            wget --no-verbose --tries=1 --spider http://localhost:1002/ || exit 1; \
-        fi
-
 # Start the application (serve the built files)
-CMD ["serve", "-s", "build", "-l", "1002"]
+CMD ["serve", "-s", "build", "-l", "1002"] 

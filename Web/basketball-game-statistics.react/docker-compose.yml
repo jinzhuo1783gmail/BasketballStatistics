@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  # Development environment
+  basketball-stats-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: development
+    ports:
+      - "1002:1002"
+    container_name: basketball-stats-dev
+    environment:
+      - NODE_ENV=development
+    volumes:
+      # Mount source code for hot reloading in development
+      - ./src:/app/src
+      - ./public:/app/public
+    restart: unless-stopped
+
+  # Production environment
+  basketball-stats-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+    ports:
+      - "3000:3000"
+    container_name: basketball-stats-prod
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped 

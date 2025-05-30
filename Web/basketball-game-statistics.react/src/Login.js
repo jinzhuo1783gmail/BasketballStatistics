@@ -2,11 +2,7 @@ import React, { useState } from 'react';
 import './Login.css';
 
 function getApiBaseUrl() {
-  if (process.env.NODE_ENV === 'development') {
-    return 'https://intensivecredentialdev.azurewebsites.net/';
-  } else {
-    return 'https://intensivecredentialprod.azurewebsites.net/';
-  }
+  return process.env.REACT_APP_AUTH_API;
 }
 
 export default function Login({ onLoginSuccess, onClose }) {

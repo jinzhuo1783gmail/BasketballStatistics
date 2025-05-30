@@ -4,11 +4,7 @@ import teamBull from './images/team_14.2_bull.png';
 import Game from './models/Game';
 
 function getApiBaseUrl() {
-  if (process.env.NODE_ENV === 'development') {
-    return process.env.REACT_APP_API_DEV;
-  } else {
-    return process.env.REACT_APP_API_PROD;
-  }
+  return process.env.REACT_APP_API_GAME;
 }
 
 export default function Games() {

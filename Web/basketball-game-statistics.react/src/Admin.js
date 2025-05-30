@@ -5,11 +5,7 @@ import CreateGame from './CreateGame';
 import EditGame from './EditGame';
 
 function getApiBaseUrl() {
-  if (process.env.NODE_ENV === 'development') {
-    return process.env.REACT_APP_API_DEV;
-  } else {
-    return process.env.REACT_APP_API_PROD;
-  }
+  return process.env.REACT_APP_API_GAME;
 }
 
 export default function Admin({ onLoginRequired }) {
