@@ -4,7 +4,7 @@
 # Usage: ./build-docker.sh [development|production]
 
 ENVIRONMENT=${1:-production}
-IMAGE_NAME="basketball-stats"
+IMAGE_NAME="basketball.statistic.web"
 
 echo "Building Docker image for $ENVIRONMENT environment..."
 
@@ -13,6 +13,8 @@ case $ENVIRONMENT in
     echo "Building development image..."
     docker build \
       --build-arg NODE_ENV=development \
+      --build-arg REACT_APP_API_GAME=http://matrixthoughts.ddns.net:1001/ \
+      --build-arg REACT_APP_AUTH_API=https://intensivecredentialdev.azurewebsites.net/ \
       -t ${IMAGE_NAME}:dev \
       .
     
@@ -25,6 +27,8 @@ case $ENVIRONMENT in
     echo "Building production image..."
     docker build \
       --build-arg NODE_ENV=production \
+      --build-arg REACT_APP_API_GAME=http://matrixthoughts.ddns.net:2001/ \
+      --build-arg REACT_APP_AUTH_API=https://intensivecredentialprod.azurewebsites.net/ \
       -t ${IMAGE_NAME}:prod \
       .
     

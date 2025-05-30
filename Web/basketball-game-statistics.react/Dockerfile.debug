@@ -1,0 +1,49 @@
+# Use official Node.js image
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# 1. Set environment FIRST (before copying files)
+ARG NODE_ENV=development
+ENV NODE_ENV=$NODE_ENV
+
+# Debug: Print environment variables
+RUN echo "=== DEBUG: Environment Variables ==="
+RUN echo "NODE_ENV: $NODE_ENV"
+RUN printenv | grep NODE_ENV || echo "NODE_ENV not found in printenv"
+
+# 2. Copy package files for dependency installation
+COPY package*.json ./
+
+# 3. Install dependencies
+RUN npm install
+
+# 4. Copy ALL project files (including .env files)
+COPY . .
+
+# Debug: Check if .env files are copied
+RUN echo "=== DEBUG: Checking .env files ==="
+RUN ls -la .env* || echo "No .env files found"
+RUN cat .env.development || echo ".env.development not found"
+
+# Debug: Check Node environment during build
+RUN echo "=== DEBUG: Node environment check ==="
+RUN node -e "console.log('NODE_ENV:', process.env.NODE_ENV)"
+RUN node -e "console.log('REACT_APP_API_GAME:', process.env.REACT_APP_API_GAME)"
+
+# 5. Build the application with the correct environment
+RUN npm run build
+
+# Debug: Check build output
+RUN echo "=== DEBUG: Build output check ==="
+RUN ls -la build/static/js/ | head -5
+
+# 6. Install serve to serve the built application
+RUN npm install -g serve
+
+# Expose port 1002
+EXPOSE 1002
+
+# Start the application (serve the built files)
+CMD ["serve", "-s", "build", "-l", "1002"] 

@@ -1,38 +1,34 @@
-# Use official Node.js image
+# Basketball Game Statistics React App
 FROM node:18-alpine
 
 # Set working directory
 WORKDIR /app
 
-# 1. Set environment FIRST (before copying files)
-ARG NODE_ENV=development
+# Accept build arguments for environment configuration
+ARG NODE_ENV=production
+ARG REACT_APP_API_GAME
+ARG REACT_APP_AUTH_API
+
+# Set environment variables for React build
 ENV NODE_ENV=$NODE_ENV
+ENV REACT_APP_API_GAME=$REACT_APP_API_GAME
+ENV REACT_APP_AUTH_API=$REACT_APP_AUTH_API
 
-# 2. Copy package files for dependency installation
+# Copy package files and install dependencies
 COPY package*.json ./
+RUN npm ci --only=production
 
-# 3. Install dependencies
-RUN npm install
-
-# 4. Copy ALL project files (including .env files)
+# Copy source code
 COPY . .
 
-# 5. Build the application with the correct environment
+# Build the React application
 RUN npm run build
 
-# 6. Install serve to serve the built application
+# Install serve for production serving
 RUN npm install -g serve
 
-# Expose port 1002
+# Expose port
 EXPOSE 1002
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD if [ "$NODE_ENV" = "production" ]; then \
-            wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1; \
-        else \
-            wget --no-verbose --tries=1 --spider http://localhost:1002/ || exit 1; \
-        fi
-
-# Start the application (serve the built files)
+# Start the application
 CMD ["serve", "-s", "build", "-l", "1002"]
