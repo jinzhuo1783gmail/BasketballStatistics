@@ -1,70 +1,150 @@
-# Getting Started with Create React App
+# Local Voice Recorder - OGG Opus Format
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This C# console application records audio in OGG Opus format and sends it to your basketball statistics API.
 
-## Available Scripts
+## Setup Requirements
 
-In the project directory, you can run:
+### Option 1: Using FFmpeg Command Line (Program.cs)
+1. **Install FFmpeg**:
+   - **Windows**: Download from https://ffmpeg.org/ or use `winget install ffmpeg`
+   - **macOS**: `brew install ffmpeg`
+   - **Linux**: `sudo apt install ffmpeg` or `sudo yum install ffmpeg`
 
-### `npm start`
+2. **Verify FFmpeg installation**:
+   ```bash
+   ffmpeg -version
+   ```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+3. **Build and run**:
+   ```bash
+   dotnet build
+   dotnet run
+   ```
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Option 2: Using FFMpegCore Library (Program_FFMpegCore.cs)
+1. **Install FFmpeg** (same as above)
 
-### `npm test`
+2. **Install FFMpegCore NuGet package**:
+   ```bash
+   dotnet add package FFMpegCore
+   dotnet add package NAudio
+   ```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+3. **Rename the file**:
+   ```bash
+   # Use the FFMpegCore version
+   mv Program.cs Program_Basic.cs
+   mv Program_FFMpegCore.cs Program.cs
+   ```
 
-### `npm run build`
+4. **Build and run**:
+   ```bash
+   dotnet build
+   dotnet run
+   ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Audio Format Specifications
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### OGG Opus Settings:
+- **Container**: OGG
+- **Codec**: Opus
+- **Sample Rate**: 16kHz
+- **Bitrate**: 64 kbps
+- **Channels**: 1 (Mono)
+- **Application**: VOIP (optimized for speech)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Comparison with Previous Formats:
 
-### `npm run eject`
+| Format | File Size | Quality | Compression | Speech Recognition |
+|--------|-----------|---------|-------------|-------------------|
+| WAV | Large | Excellent | None | Good |
+| WebM | Medium | Good | Moderate | Good |
+| **OGG Opus** | **Small** | **Excellent** | **High** | **Excellent** |
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## How It Works
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+1. **Record Audio**: Uses NAudio to capture 16kHz mono audio for 5 seconds
+2. **Save as WAV**: Temporarily saves raw audio as WAV file
+3. **Convert to OGG Opus**: Uses FFmpeg to convert WAV → OGG Opus
+4. **Encode Base64**: Converts OGG file to Base64 string
+5. **Send to API**: Posts the Base64 audio to your basketball statistics endpoint
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Code Structure
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Program.cs (Basic FFmpeg)
+- `RecordAudioAsOggOpus()`: Main recording function
+- `ConvertWavToOggOpus()`: FFmpeg command line conversion
+- Fallback: Uses WAV if FFmpeg fails
 
-## Learn More
+### Program_FFMpegCore.cs (Advanced)
+- `RecordAudioAsOggOpusWithFFMpegCore()`: File-based conversion
+- `RecordAudioAsOggOpusInMemory()`: In-memory conversion (more efficient)
+- Better error handling and more conversion options
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Benefits of OGG Opus
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+1. **Superior Compression**: ~50% smaller files than WAV
+2. **Excellent Speech Quality**: Opus codec optimized for voice
+3. **Low Latency**: Better for real-time applications
+4. **Azure Speech Service**: Native support for OGG Opus
+5. **Open Standard**: Free, royalty-free format
+6. **Browser Compatible**: Matches your web app's preferred format
 
-### Code Splitting
+## Troubleshooting
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### FFmpeg Not Found
+```
+❌ FFmpeg conversion error: The system cannot find the file specified
+```
+**Solution**: Install FFmpeg and ensure it's in your system PATH
 
-### Analyzing the Bundle Size
+### FFMpegCore Issues
+```
+❌ FFMpegCore conversion error: ...
+```
+**Solutions**:
+1. Ensure FFmpeg is installed
+2. Install FFMpegCore: `dotnet add package FFMpegCore`
+3. Check FFmpeg permissions
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### Audio Recording Issues
+```
+❌ Error starting recording: No audio device found
+```
+**Solutions**:
+1. Check microphone permissions
+2. Ensure audio device is connected
+3. Try running as administrator
 
-### Making a Progressive Web App
+## Example Output
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+```
+Local Voice Recorder (OGG Opus Base64)
+Press any key to start recording (5 sec)...
 
-### Advanced Configuration
+Recording... (5 sec)
+WAV recorded: 160,044 bytes
+Converting WAV to OGG Opus...
+✅ WAV to OGG Opus conversion successful!
+OGG Opus created: 8,734 bytes
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+Audio recorded: 8,734 bytes
+Base64 length: 11,646 characters
+Base64 preview: T2dnUwACAAAAAAAAAADVEoqgAAAAAC...
 
-### Deployment
+Sending to API...
+Sending request to: http://localhost:1001/api/playerstatistics
+GameId: 1
+Language: zh-CN
+VoiceBase64 length: 11,646
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+Response status: OK
+Response content: {"id":123,"team":1,"playerNumber":15,"inputText":"白队15号篮板",...}
+✅ API request successful!
 
-### `npm run build` fails to minify
+Done! Press any key to exit.
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Integration with Your Basketball App
+
+This console app now generates the same OGG Opus format that your React web app prefers, ensuring consistency across platforms. The Base64 output can be directly sent to your `/api/playerstatistics` endpoint.

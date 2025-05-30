@@ -223,13 +223,13 @@ export default function VoiceStatisticsInput({ gameId, gameName, onBack }) {
       
       streamRef.current = stream;
       audioChunksRef.current = [];
-      
-      // Try different WebM formats in order of preference
-      let mimeType = 'audio/webm;codecs=opus';
+
+      // Try different formats in order of preference - prioritizing OGG Opus
+      let mimeType = 'audio/ogg;codecs=opus';
       if (!MediaRecorder.isTypeSupported(mimeType)) {
-        mimeType = 'audio/webm';
+        mimeType = 'audio/webm;codecs=opus';
         if (!MediaRecorder.isTypeSupported(mimeType)) {
-          mimeType = 'audio/ogg;codecs=opus';
+          mimeType = 'audio/webm';
           if (!MediaRecorder.isTypeSupported(mimeType)) {
             mimeType = ''; // Let browser choose
           }
@@ -238,9 +238,9 @@ export default function VoiceStatisticsInput({ gameId, gameName, onBack }) {
       
       console.log('🎵 Using MIME type:', mimeType || 'browser default');
       console.log('🎵 Supported types check:');
+      console.log('  - audio/ogg;codecs=opus:', MediaRecorder.isTypeSupported('audio/ogg;codecs=opus'));
       console.log('  - audio/webm;codecs=opus:', MediaRecorder.isTypeSupported('audio/webm;codecs=opus'));
       console.log('  - audio/webm:', MediaRecorder.isTypeSupported('audio/webm'));
-      console.log('  - audio/ogg;codecs=opus:', MediaRecorder.isTypeSupported('audio/ogg;codecs=opus'));
       
       const options = {
         audioBitsPerSecond: 128000 // 128 kbps for good quality
@@ -281,7 +281,7 @@ export default function VoiceStatisticsInput({ gameId, gameName, onBack }) {
       
       // Start recording with timeslice for better data flow
       mediaRecorder.start(1000); // 1 second chunks
-      console.log('▶️ Recording started with WebM format');
+      console.log('▶️ Recording started with OGG Opus format (or fallback)');
       setIsRecording(true);
     } catch (error) {
       console.error('❌ Error starting recording:', error);
@@ -313,7 +313,7 @@ export default function VoiceStatisticsInput({ gameId, gameName, onBack }) {
 
   const convertToBase64AndSend = async (audioBlob) => {
     setIsLoading(true);
-    console.log('🔄 Converting WebM audio to base64...');
+    console.log('🔄 Converting audio to base64...');
     console.log('🎵 Audio blob details:', {
       size: audioBlob.size,
       type: audioBlob.type
@@ -325,7 +325,7 @@ export default function VoiceStatisticsInput({ gameId, gameName, onBack }) {
         console.log('📄 FileReader result length:', reader.result.length);
         console.log('📄 FileReader result preview:', reader.result.substring(0, 100) + '...');
         
-        const base64Audio = reader.result.split(',')[1]; // Remove data:audio/webm;base64, prefix
+        const base64Audio = reader.result.split(',')[1]; // Remove data:audio/ogg;base64, or similar prefix
         
         console.log('✅ Base64 conversion complete:');
         console.log('  - Original audio size:', audioBlob.size, 'bytes');
@@ -555,6 +555,62 @@ export default function VoiceStatisticsInput({ gameId, gameName, onBack }) {
     setStatistics(prev => [newEntry, ...prev]);
   };
 
+  const removeStatistic = async (statisticId, statisticData) => {
+    // Show confirmation dialog with ID and input text
+    const inputText = statisticData?.InputText || statisticData?.inputText || statisticData?.Input_Text || 'No text available';
+    const confirmMessage = `Are you sure you want to remove this statistic?\n\nID: ${statisticId}\nText: ${inputText}`;
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('authToken');
+      const apiUrl = `${getApiBaseUrl()}api/playerstatistics/revert`;
+      
+      console.log('🗑️ Removing statistic:', statisticId);
+      
+      const response = await fetch(apiUrl, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ id: statisticId.toString() })
+      });
+
+      if (response.status === 200) {
+        // Remove from local state
+        setStatistics(prev => prev.filter(stat => {
+          const statId = stat.data?.id || stat.data?.Id || stat.data?.ID || stat.id;
+          return statId !== statisticId;
+        }));
+        
+        console.log('✅ Statistic removed successfully');
+        
+        // Show success message briefly
+        const successEntry = {
+          id: Date.now(),
+          type: 'success',
+          message: 'Statistic removed successfully',
+          timestamp: new Date()
+        };
+        setStatistics(prev => [successEntry, ...prev]);
+        
+        // Remove success message after 3 seconds
+        setTimeout(() => {
+          setStatistics(prev => prev.filter(stat => stat.id !== successEntry.id));
+        }, 3000);
+      } else {
+        const errorText = await response.text();
+        console.log('❌ Failed to remove statistic:', response.status, errorText);
+        alert(`Failed to remove statistic: ${response.status} - ${errorText}`);
+      }
+    } catch (error) {
+      console.error('❌ Error removing statistic:', error);
+      alert(`Error removing statistic: ${error.message}`);
+    }
+  };
+
   const handleMouseDown = () => {
     console.log('🖱️ Mouse down - attempting to start recording');
     console.log('📊 Current states - isLoading:', isLoading, 'isRecording:', isRecording);
@@ -607,8 +663,21 @@ export default function VoiceStatisticsInput({ gameId, gameName, onBack }) {
               const team = stat.data?.Team || stat.data?.team || 0;
               const teamClass = team === 1 ? 'light-team' : team === 2 ? 'dark-team' : '';
               
+              // Get the statistic ID for removal
+              const statisticId = stat.data?.id || stat.data?.Id || stat.data?.ID;
+              const canRemove = statisticId && stat.type === 'success';
+              
               return (
                 <div key={stat.id} className={`stat-entry ${stat.type} ${teamClass}`}>
+                  {canRemove && (
+                    <button 
+                      className="remove-btn"
+                      onClick={() => removeStatistic(statisticId, stat.data)}
+                      title="Remove this statistic"
+                    >
+                      ×
+                    </button>
+                  )}
                   <div className="stat-icon">
                     {stat.type === 'success' ? '✅' : '❌'}
                   </div>
@@ -649,6 +718,12 @@ export default function VoiceStatisticsInput({ gameId, gameName, onBack }) {
         >
           {isLoading ? '🔄 Processing...' : isRecording ? '🔴 Recording...' : '🎤 Hold to Record'}
         </button>
+      </div>
+
+      <div style={{ textAlign: 'center', marginTop: '10px', color: '#666', fontSize: '14px' }}>
+        <div style={{ marginBottom: '10px' }}>
+          Format: 16kHz, Opus Codec, Mono OGG • Language: {language === 'zh-CN' ? '中文' : 'English'}
+        </div>
       </div>
     </div>
   );
