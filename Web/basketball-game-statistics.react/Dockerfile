@@ -14,6 +14,8 @@ COPY . .
 # 4. Build the application (now all files are available)
 RUN npm run build
 
+RUN npm install -g serve
+
 # Expose port 1002
 EXPOSE 1002
 
