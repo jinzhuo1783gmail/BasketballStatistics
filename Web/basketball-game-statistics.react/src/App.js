@@ -38,6 +38,7 @@ function MainLayout({ content, showLoginForAdmin, setShowLoginForAdmin }) {
   const location = useLocation();
   const [showLogin, setShowLogin] = useState(false);
   const [user, setUser] = useState(null);
+  const [previousLocation, setPreviousLocation] = useState(null);
 
   useEffect(() => {
     // Check if user is already logged in
@@ -90,15 +91,23 @@ function MainLayout({ content, showLoginForAdmin, setShowLoginForAdmin }) {
     setShowLogin(false);
     if (showLoginForAdmin) {
       setShowLoginForAdmin(false);
+      // If user was trying to access admin and closed login, navigate back to previous page
+      if (previousLocation && previousLocation !== '/admin') {
+        navigate(previousLocation);
+      } else if (!previousLocation) {
+        navigate('/home');
+      }
     }
   };
 
   // Handle admin login requirement
   useEffect(() => {
     if (showLoginForAdmin) {
+      // Store the current location before showing login
+      setPreviousLocation(location.pathname);
       setShowLogin(true);
     }
-  }, [showLoginForAdmin]);
+  }, [showLoginForAdmin, location.pathname]);
 
   return (
     <div className="App">

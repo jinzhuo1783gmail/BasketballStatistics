@@ -14,16 +14,27 @@ export default function Games() {
   const [teamStats, setTeamStats] = useState([]);
   const [loading, setLoading] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
   
   // Configuration for carousel based on screen size
   const getCardsToShow = () => {
-    if (windowWidth <= 480) return 1; // Mobile: 1 card
-    if (windowWidth <= 768) return 2; // Tablet: 2 cards
-    return 3; // Desktop: 3 cards
+    if (windowWidth <= 480) return Math.min(3, games.length); // Mobile: show up to 3 much smaller cards
+    if (windowWidth <= 768) return Math.min(2, games.length); // Tablet: 2 cards
+    return Math.min(3, games.length); // Desktop: 3 cards
+  };
+
+  const getCardWidth = () => {
+    if (windowWidth <= 480) return 100; // Mobile: much smaller cards (90px + 10px margin)
+    if (windowWidth <= 768) return 196; // Tablet: medium cards (180px + 16px margin)  
+    return 240; // Desktop: full size cards
   };
   
   const cardsToShow = getCardsToShow();
-  const cardWidth = 240; // Width of each card including margin
+  const cardWidth = getCardWidth();
+
+  // Minimum swipe distance (in px)
+  const minSwipeDistance = 50;
 
   useEffect(() => {
     fetchGames();
@@ -84,6 +95,34 @@ export default function Games() {
   const handleNextClick = () => {
     if (currentIndex < games.length - cardsToShow) {
       setCurrentIndex(currentIndex + 1);
+    }
+  };
+
+  const handleTouchStart = (e) => {
+    setTouchEnd(null); // otherwise the swipe is fired even with usual touch events
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+    // Prevent scrolling while swiping horizontally
+    if (Math.abs(touchStart - e.targetTouches[0].clientX) > 10) {
+      e.preventDefault();
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && currentIndex < games.length - cardsToShow) {
+      setCurrentIndex(currentIndex + 1);
+    }
+    if (isRightSwipe && currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
     }
   };
 
@@ -271,6 +310,9 @@ export default function Games() {
               transform: `translateX(-${currentIndex * cardWidth}px)`,
               width: `${games.length * cardWidth}px`
             }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
           >
             {games.map((game, index) => renderGameCard(game, index))}
           </div>

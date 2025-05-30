@@ -21,7 +21,7 @@
 
 .carousel-viewport {
   overflow: hidden;
-  width: calc(3 * 240px); /* Show 3 cards at a time */
+  width: calc(3 * 240px); /* Show 3 cards at a time on desktop */
   margin: 0 20px; /* Space for buttons */
   border-radius: 6px;
 }
@@ -30,6 +30,8 @@
   display: flex;
   transition: transform 0.4s ease-in-out;
   will-change: transform;
+  touch-action: pan-x; /* Allow horizontal panning for touch devices */
+  user-select: none; /* Prevent text selection during swipe */
 }
 
 .carousel-button {
@@ -94,6 +96,8 @@
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
+  -webkit-touch-callout: none; /* Prevent callout on iOS */
+  -webkit-user-select: none; /* Prevent selection on iOS */
 }
 
 .game-card::before {
@@ -302,7 +306,7 @@
   }
 
   .carousel-viewport {
-    width: calc(2 * 240px); /* Show 2 cards on tablets */
+    width: calc(2 * 220px); /* Show 2 cards on tablets */
   }
 
   .carousel-button {
@@ -321,7 +325,10 @@
 
   .game-card {
     min-width: 180px;
+    max-width: 180px;
+    width: 180px;
     padding: 12px;
+    margin: 0 8px;
   }
 
   .game-card-image {
@@ -386,27 +393,46 @@
   }
 
   .carousel-viewport {
-    width: 240px; /* Show 1 card on mobile */
+    width: 300px; /* Show 3 smaller cards on mobile (100px each) */
+    margin: 0 15px;
   }
 
   .game-card {
-    min-width: 200px;
-    max-width: 200px;
-    width: 200px;
+    min-width: 90px;
+    max-width: 90px;
+    width: 90px;
+    padding: 6px;
+    margin: 0 5px;
   }
 
   .game-card-image {
-    height: 80px;
+    height: 45px;
   }
 
   .game-card h3 {
-    font-size: 0.85em;
-    margin: 6px 0;
+    font-size: 0.7em;
+    margin: 3px 0;
+    line-height: 1.1;
   }
 
   .game-card p {
-    font-size: 0.7em;
-    margin: 3px 0;
+    font-size: 0.55em;
+    margin: 1px 0;
+    line-height: 1.2;
+  }
+
+  .carousel-button {
+    width: 25px;
+    height: 25px;
+    font-size: 10px;
+  }
+
+  .carousel-button.prev {
+    left: -8px;
+  }
+
+  .carousel-button.next {
+    right: -8px;
   }
 
   .game-statistics-section h2,
